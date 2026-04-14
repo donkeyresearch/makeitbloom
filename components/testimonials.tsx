@@ -23,21 +23,21 @@ const DEFAULT_TESTIMONIALS: Testimonial[] = [
     parentName: "Mrs Lim",
     level: "Sec 2",
     quote: "My son's Math results improved from a D7 to a B3 in just two months. Very patient and structured teacher.",
-    images: [],
+    images: ["/testimonial-1.png"],
   },
   {
     id: "2",
     parentName: "Mr Tan",
     level: "Sec 1",
     quote: "Highly recommended. She explains concepts clearly and my daughter actually looks forward to lessons now.",
-    images: [],
+    images: ["/testimonial-2.jpg"],
   },
   {
     id: "3",
     parentName: "Mrs Ng",
     level: "Sec 2",
     quote: "Very committed tutor. Always follows up after sessions to make sure my child understood the material.",
-    images: [],
+    images: ["/testimonial-3.jpg"],
   },
 ]
 
@@ -106,7 +106,7 @@ export function Testimonials({ isTutor }: { isTutor: boolean }) {
   const [items, setItems] = useState<Testimonial[]>(DEFAULT_TESTIMONIALS)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState<Testimonial[]>(DEFAULT_TESTIMONIALS)
-  const [view, setView] = useState<"list" | "grid">("grid")
+  const [view, setView] = useState<"list" | "grid">("list")
   const [previewSrc, setPreviewSrc] = useState<string | null>(null)
 
   const [newParentName, setNewParentName] = useState("")
@@ -279,9 +279,9 @@ export function Testimonials({ isTutor }: { isTutor: boolean }) {
               {items.map((t) => (
                 <Card key={t.id} className="shadow-none">
                   <CardContent className="flex flex-col gap-1.5 p-3">
-                    <p className="text-xs font-medium">{t.parentName}</p>
+                    <p className="text-sm font-semibold">{t.parentName}</p>
                     {t.level && <p className="text-xs text-muted-foreground">{t.level}</p>}
-                    <p className="text-xs leading-relaxed text-muted-foreground">"{t.quote}"</p>
+                    <p className="text-sm leading-relaxed">"{t.quote}"</p>
                     <ImageStrip images={t.images} onPreview={setPreviewSrc} />
                   </CardContent>
                 </Card>
