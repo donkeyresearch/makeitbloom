@@ -1,4 +1,5 @@
 import { ContactSocials } from "@/components/contact-socials"
+import { LocationTravel } from "@/components/location-travel"
 import { ProfileHero } from "@/components/profile-hero"
 import { SubjectsRates } from "@/components/subjects-rates"
 import { Testimonials } from "@/components/testimonials"
@@ -11,6 +12,7 @@ export default function Page() {
           <ProfileHero />
           <SubjectsRates />
           <Testimonials />
+          <LocationTravel />
         </div>
       </main>
       <ContactSocials />
