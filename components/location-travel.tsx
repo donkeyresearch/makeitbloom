@@ -38,7 +38,7 @@ const MODE_LABELS: Record<Mode, string> = {
   "both": "Both",
 }
 
-export function LocationTravel() {
+export function LocationTravel({ isTutor }: { isTutor: boolean }) {
   const [data, setData] = useState<LocationData>(DEFAULT_DATA)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState<LocationData>(DEFAULT_DATA)
@@ -146,9 +146,9 @@ export function LocationTravel() {
     <div className="relative flex flex-col gap-3 rounded-xl border bg-card p-4 text-card-foreground shadow-sm">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold">Location &amp; Travel</p>
-        <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={startEdit}>
+        {isTutor && <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={startEdit}>
           Edit
-        </Button>
+        </Button>}
       </div>
 
       <Badge variant="secondary" className="w-fit">{MODE_LABELS[data.mode]}</Badge>

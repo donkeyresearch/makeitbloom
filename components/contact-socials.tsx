@@ -1,14 +1,16 @@
 "use client"
 
 import { useState } from "react"
-import { IconBrandFacebook, IconBrandTiktok, IconBrandWhatsapp, IconPencil, IconX } from "@tabler/icons-react"
+import { IconBrandFacebook, IconBrandTiktok, IconBrandWhatsapp, IconPencil, IconShare } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
+import { ShareDialog } from "@/components/share-dialog"
 
 interface ContactData {
-  whatsapp: string   // digits only, e.g. "91234567"
-  tiktok: string     // handle without @, optional
-  facebook: string   // handle or URL, optional
+  whatsapp: string
+  tiktok: string
+  facebook: string
 }
 
 const DEFAULT_DATA: ContactData = {
@@ -21,11 +23,28 @@ function sanitisePhone(val: string) {
   return val.replace(/[^0-9]/g, "").slice(0, 15)
 }
 
-function buildWhatsAppUrl(number: string) {
-  const msg = encodeURIComponent("Hi, I saw your profile and I'm interested in your tuition services.")
-  // Prepend +65 if 8-digit SG number
+interface SelectedSubject {
+  id: string
+  level: string
+  subject: string
+  rateRaw: string
+  currency: string
+}
+
+function buildWhatsAppUrl(number: string, selected: SelectedSubject[]) {
+  let msg: string
+  if (selected.length === 0) {
+    msg = "Hi, I saw your profile and I'm interested in your tuition services. Could we arrange a call?"
+  } else {
+    const lines = selected.map((s) => {
+      const rate = parseFloat(s.rateRaw)
+      const rateStr = isNaN(rate) ? "" : ` (${s.currency} $${rate.toFixed(2)}/hr)`
+      return `• ${s.level} ${s.subject}${rateStr}`
+    }).join("\n")
+    msg = `Hi, I saw your profile and I'm interested in the following:\n${lines}\n\nCould we arrange a trial lesson?`
+  }
   const full = number.length === 8 ? `65${number}` : number
-  return `https://wa.me/${full}?text=${msg}`
+  return `https://wa.me/${full}?text=${encodeURIComponent(msg)}`
 }
 
 function buildTikTokUrl(handle: string) {
@@ -37,23 +56,28 @@ function buildFacebookUrl(handle: string) {
   return `https://facebook.com/${handle}`
 }
 
-export function ContactSocials() {
+export function ContactSocials({
+  selected = [],
+  isTutor,
+  onWhatsAppTap,
+}: {
+  selected?: SelectedSubject[]
+  isTutor: boolean
+  onWhatsAppTap?: () => void
+}) {
   const [data, setData] = useState<ContactData>(DEFAULT_DATA)
-  const [editing, setEditing] = useState(false)
+  const [open, setOpen] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
   const [draft, setDraft] = useState<ContactData>(DEFAULT_DATA)
 
   function startEdit() {
     setDraft(data)
-    setEditing(true)
+    setOpen(true)
   }
 
   function save() {
     setData(draft)
-    setEditing(false)
-  }
-
-  function cancel() {
-    setEditing(false)
+    setOpen(false)
   }
 
   const hasTiktok = data.tiktok.trim().length > 0
@@ -62,22 +86,20 @@ export function ContactSocials() {
 
   return (
     <>
-      {/* Edit panel — slides in above the sticky bar */}
-      {editing && (
-        <div className="fixed bottom-20 left-0 right-0 z-40 mx-auto max-w-sm px-4">
-          <div className="flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-lg">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold">Contact &amp; Socials</p>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={cancel}>
-                <IconX size={14} />
-              </Button>
-            </div>
+      <ShareDialog open={shareOpen} onOpenChange={setShareOpen} />
 
+      {/* Drawer for tutor edit */}
+      <Drawer open={open} onOpenChange={setOpen}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Contact &amp; Socials</DrawerTitle>
+          </DrawerHeader>
+          <div className="flex flex-col gap-4 px-4 pb-8">
             <div className="flex flex-col gap-1">
               <label className="text-xs text-muted-foreground">WhatsApp number</label>
               <div className="flex items-center rounded-md border bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
                 <span className="select-none whitespace-nowrap pl-3 text-sm text-muted-foreground">+65</span>
-                <span className="w-px self-stretch bg-border mx-2" />
+                <span className="mx-2 w-px self-stretch bg-border" />
                 <input
                   className="w-full bg-transparent py-2 pr-3 text-sm outline-none placeholder:text-muted-foreground"
                   inputMode="numeric"
@@ -89,7 +111,9 @@ export function ContactSocials() {
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="text-xs text-muted-foreground">TikTok handle <span className="text-muted-foreground/50">(optional)</span></label>
+              <label className="text-xs text-muted-foreground">
+                TikTok handle <span className="text-muted-foreground/50">(optional)</span>
+              </label>
               <div className="flex items-center rounded-md border bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
                 <span className="select-none pl-3 text-sm text-muted-foreground">@</span>
                 <input
@@ -102,7 +126,9 @@ export function ContactSocials() {
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="text-xs text-muted-foreground">Facebook <span className="text-muted-foreground/50">(optional)</span></label>
+              <label className="text-xs text-muted-foreground">
+                Facebook <span className="text-muted-foreground/50">(optional)</span>
+              </label>
               <Input
                 placeholder="handle or URL"
                 value={draft.facebook}
@@ -112,28 +138,31 @@ export function ContactSocials() {
 
             <Button className="w-full" onClick={save}>Save</Button>
           </div>
-        </div>
-      )}
+        </DrawerContent>
+      </Drawer>
 
       {/* Sticky bar */}
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="mx-auto flex max-w-sm items-center gap-2 px-4 py-3">
           {/* WhatsApp CTA */}
           {hasWhatsapp ? (
-            <a href={buildWhatsAppUrl(data.whatsapp)} target="_blank" rel="noopener noreferrer" className="flex-1">
+            <a href={buildWhatsAppUrl(data.whatsapp, selected)} target="_blank" rel="noopener noreferrer" className="flex-1" onClick={onWhatsAppTap}>
               <Button className="w-full gap-2 bg-green-600 hover:bg-green-700">
                 <IconBrandWhatsapp size={18} />
-                Chat on WhatsApp
+                {selected.length === 0
+                  ? "Enquire via WhatsApp"
+                  : selected.length === 1
+                  ? `Enquire about ${selected[0].subject}`
+                  : `Enquire about ${selected.length} subjects`}
               </Button>
             </a>
           ) : (
             <Button className="flex-1 gap-2" disabled>
               <IconBrandWhatsapp size={18} />
-              Chat on WhatsApp
+              Enquire via WhatsApp
             </Button>
           )}
 
-          {/* Social icons */}
           {hasTiktok && (
             <a href={buildTikTokUrl(data.tiktok)} target="_blank" rel="noopener noreferrer">
               <Button variant="outline" size="icon">
@@ -149,10 +178,16 @@ export function ContactSocials() {
             </a>
           )}
 
-          {/* Edit trigger */}
-          <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground" onClick={startEdit}>
-            <IconPencil size={16} />
-          </Button>
+          {isTutor && (
+            <>
+              <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground" onClick={() => setShareOpen(true)}>
+                <IconShare size={16} />
+              </Button>
+              <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground" onClick={startEdit}>
+                <IconPencil size={16} />
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </>
