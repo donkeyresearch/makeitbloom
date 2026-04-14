@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useRef } from "react"
+import { IconMoon, IconSun } from "@tabler/icons-react"
+import { useTheme } from "next-themes"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -25,6 +27,7 @@ const DEFAULT_DATA: ProfileData = {
 }
 
 export function ProfileHero() {
+  const { theme, setTheme } = useTheme()
   const [data, setData] = useState<ProfileData>(DEFAULT_DATA)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState<DraftData>({ name: DEFAULT_DATA.name, studentCountRaw: String(DEFAULT_DATA.studentCount), avatarUrl: DEFAULT_DATA.avatarUrl })
@@ -65,9 +68,21 @@ export function ProfileHero() {
     .slice(0, 2)
     .toUpperCase()
 
+  const ThemeToggle = () => (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="absolute left-3 top-3 h-7 w-7 text-muted-foreground"
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+    >
+      {theme === "dark" ? <IconSun size={15} /> : <IconMoon size={15} />}
+    </Button>
+  )
+
   if (editing) {
     return (
-      <div className="flex flex-col items-center gap-4 rounded-xl border bg-card p-6 text-card-foreground shadow-sm">
+      <div className="relative flex flex-col items-center gap-4 rounded-xl border bg-card p-6 text-card-foreground shadow-sm">
+        <ThemeToggle />
         {/* Avatar upload */}
         <div
           className="cursor-pointer"
@@ -134,6 +149,7 @@ export function ProfileHero() {
 
   return (
     <div className="relative flex flex-col items-center gap-3 rounded-xl border bg-card p-6 text-card-foreground shadow-sm">
+      <ThemeToggle />
       <Button
         variant="ghost"
         size="sm"
