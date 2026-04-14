@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { IconBrandWhatsapp, IconCheck, IconLayoutGrid, IconLayoutList, IconPlus, IconTrash } from "@tabler/icons-react"
+import { IconCheck, IconLayoutGrid, IconLayoutList, IconPlus, IconTrash } from "@tabler/icons-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -246,81 +246,106 @@ export function SubjectsRates({
   }
 
   // ── VIEW MODE ────────────────────────────────────────────────────────────────
+
+  // Parent mode: all entries grouped by level, no tabs
+  const parentGroups = levels.map((level) => ({
+    level,
+    entries: entries.filter((e) => e.level === level),
+  }))
+
   return (
     <div className="flex flex-col gap-3 rounded-xl border bg-card p-4 text-card-foreground shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold">Subjects &amp; Rate</p>
         <div className="flex items-center gap-1">
-          <Button
-            variant={view === "list" ? "secondary" : "ghost"}
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => setView("list")}
-          >
-            <IconLayoutList size={14} />
-          </Button>
-          <Button
-            variant={view === "grid" ? "secondary" : "ghost"}
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => setView("grid")}
-          >
-            <IconLayoutGrid size={14} />
-          </Button>
-          {isTutor && <Button variant="ghost" size="sm" className="ml-1 text-xs text-muted-foreground" onClick={startEdit}>
-            Edit
-          </Button>}
+          {isTutor && (
+            <>
+              <Button variant={view === "list" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setView("list")}>
+                <IconLayoutList size={14} />
+              </Button>
+              <Button variant={view === "grid" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setView("grid")}>
+                <IconLayoutGrid size={14} />
+              </Button>
+              <Button variant="ghost" size="sm" className="ml-1 text-xs text-muted-foreground" onClick={startEdit}>
+                Edit
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Level tabs */}
-      {levels.length > 0 && (
-        <Tabs value={activeLevel} onValueChange={setSelectedLevel}>
-          <TabsList>
-            {levels.map((level) => (
-              <TabsTrigger key={level} value={level}>
-                {level}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+      {/* Instructional nudge — parent only */}
+      {!isTutor && entries.length > 0 && (
+        <p className="text-xs text-muted-foreground">Select the subjects you're interested in, then tap Enquire.</p>
       )}
 
-      {/* Cards */}
-      {filtered.length === 0 ? (
+      {entries.length === 0 ? (
         <p className="py-4 text-center text-xs text-muted-foreground">No subjects yet. Tap Edit to add.</p>
-      ) : (
-        <ScrollArea className="w-full">
-          <div className={view === "grid" ? "grid grid-cols-2 gap-2 p-0.5" : "flex flex-col gap-2 p-0.5"}>
-            {filtered.map((entry) => {
-              const isSelected = selected.some((s) => s.id === entry.id)
-              return (
-                <Card
-                  key={entry.id}
-                  onClick={() => !isTutor && onToggle(entry)}
-                  className={`shadow-none transition-all ${
-                    isTutor ? "" :
-                    isSelected ? "cursor-pointer border-green-500 bg-green-50 dark:bg-green-950/30" : "cursor-pointer hover:border-muted-foreground/30"
-                  }`}
-                >
-                  <CardContent className="relative p-3">
-                    <div className="mb-1 flex items-center justify-between">
-                      <Badge variant="secondary" className="text-xs">{entry.level}</Badge>
-                      {isSelected
-                        ? <IconCheck size={14} className="text-green-600" />
-                        : <IconBrandWhatsapp size={14} className="text-muted-foreground/40" />
-                      }
-                    </div>
+      ) : isTutor ? (
+        <>
+          {/* Tutor: tabs + filtered grid/list */}
+          {levels.length > 0 && (
+            <Tabs value={activeLevel} onValueChange={setSelectedLevel}>
+              <TabsList>
+                {levels.map((level) => (
+                  <TabsTrigger key={level} value={level}>{level}</TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          )}
+          <ScrollArea className="w-full">
+            <div className={view === "grid" ? "grid grid-cols-2 gap-2 p-0.5" : "flex flex-col gap-2 p-0.5"}>
+              {filtered.map((entry) => (
+                <Card key={entry.id} className="shadow-none">
+                  <CardContent className="p-3">
+                    <Badge variant="secondary" className="mb-1 text-xs">{entry.level}</Badge>
                     <p className="text-sm font-medium">{entry.subject}</p>
                     <p className="text-xs text-muted-foreground">{formatRate(entry.rateRaw, entry.currency)}</p>
-                    {!isTutor && <p className="mt-1.5 text-xs text-muted-foreground/50">Tap to enquire</p>}
                   </CardContent>
                 </Card>
-              )
-            })}
-          </div>
-        </ScrollArea>
+              ))}
+            </div>
+          </ScrollArea>
+        </>
+      ) : (
+        /* Parent: all levels visible, grouped, checkbox affordance */
+        <div className="flex flex-col gap-4 p-0.5">
+          {parentGroups.map(({ level, entries: groupEntries }) => (
+            <div key={level} className="flex flex-col gap-2">
+              <p className="text-xs font-medium text-muted-foreground">{level}</p>
+              <div className="grid grid-cols-2 gap-2">
+                {groupEntries.map((entry) => {
+                  const isSelected = selected.some((s) => s.id === entry.id)
+                  return (
+                    <Card
+                      key={entry.id}
+                      onClick={() => onToggle(entry)}
+                      className={`cursor-pointer shadow-none transition-all ${
+                        isSelected
+                          ? "border-green-500 bg-green-50 dark:bg-green-950/30"
+                          : "hover:border-muted-foreground/40"
+                      }`}
+                    >
+                      <CardContent className="p-3">
+                        <div className="mb-2 flex items-center justify-between">
+                          <p className="text-sm font-medium">{entry.subject}</p>
+                          {/* Checkbox affordance */}
+                          <span className={`flex h-4 w-4 items-center justify-center rounded-full border transition-colors ${
+                            isSelected ? "border-green-500 bg-green-500" : "border-muted-foreground/40"
+                          }`}>
+                            {isSelected && <IconCheck size={10} className="text-white" />}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{formatRate(entry.rateRaw, entry.currency)}</p>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   )
