@@ -101,7 +101,8 @@ export function ContactSocials({
                 <span className="select-none whitespace-nowrap pl-3 text-sm text-muted-foreground">+65</span>
                 <span className="mx-2 w-px self-stretch bg-border" />
                 <input
-                  className="w-full bg-transparent py-2 pr-3 text-base outline-none placeholder:text-muted-foreground"
+                  className="w-full bg-transparent py-2 pl-2 pr-3 outline-none placeholder:text-muted-foreground"
+                  style={{ fontSize: '16px' }}
                   inputMode="numeric"
                   placeholder="91234567"
                   value={draft.whatsapp}
@@ -117,7 +118,8 @@ export function ContactSocials({
               <div className="flex items-center rounded-md border bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
                 <span className="select-none pl-3 text-sm text-muted-foreground">@</span>
                 <input
-                  className="w-full bg-transparent py-2 pr-3 text-base outline-none placeholder:text-muted-foreground"
+                  className="w-full bg-transparent py-2 pl-2 pr-3 outline-none placeholder:text-muted-foreground"
+                  style={{ fontSize: '16px' }}
                   placeholder="yourtiktok"
                   value={draft.tiktok}
                   onChange={(e) => setDraft((d) => ({ ...d, tiktok: e.target.value }))}
@@ -132,6 +134,7 @@ export function ContactSocials({
               <Input
                 placeholder="handle or URL"
                 value={draft.facebook}
+                style={{ fontSize: '16px' }}
                 onChange={(e) => setDraft((d) => ({ ...d, facebook: e.target.value }))}
               />
             </div>
