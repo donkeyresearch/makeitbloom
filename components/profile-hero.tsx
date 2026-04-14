@@ -21,12 +21,12 @@ interface DraftData {
 }
 
 const DEFAULT_DATA: ProfileData = {
-  name: "Ms Sarah Tan",
+  name: "Tutor Joseph",
   studentCount: 50,
   avatarUrl: "",
 }
 
-export function ProfileHero() {
+export function ProfileHero({ isTutor }: { isTutor: boolean }) {
   const { theme, setTheme } = useTheme()
   const [data, setData] = useState<ProfileData>(DEFAULT_DATA)
   const [editing, setEditing] = useState(false)
@@ -150,14 +150,14 @@ export function ProfileHero() {
   return (
     <div className="relative flex flex-col items-center gap-3 rounded-xl border bg-card p-6 text-card-foreground shadow-sm">
       <ThemeToggle />
-      <Button
+      {isTutor && <Button
         variant="ghost"
         size="sm"
         className="absolute right-3 top-3 text-xs text-muted-foreground"
         onClick={startEdit}
       >
         Edit
-      </Button>
+      </Button>}
 
       <Avatar className="h-20 w-20">
         <AvatarImage src={data.avatarUrl} />

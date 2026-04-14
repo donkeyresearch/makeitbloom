@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { IconLayoutGrid, IconLayoutList, IconPlus, IconTrash } from "@tabler/icons-react"
+import { IconBrandWhatsapp, IconCheck, IconLayoutGrid, IconLayoutList, IconPlus, IconTrash } from "@tabler/icons-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -84,7 +84,23 @@ function RateInput({
   )
 }
 
-export function SubjectsRates() {
+interface SelectedSubject {
+  id: string
+  level: string
+  subject: string
+  rateRaw: string
+  currency: string
+}
+
+export function SubjectsRates({
+  selected,
+  onToggle,
+  isTutor,
+}: {
+  selected: SelectedSubject[]
+  onToggle: (entry: SelectedSubject) => void
+  isTutor: boolean
+}) {
   const [entries, setEntries] = useState<SubjectEntry[]>(DEFAULT_ENTRIES)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState<SubjectEntry[]>(DEFAULT_ENTRIES)
@@ -252,9 +268,9 @@ export function SubjectsRates() {
           >
             <IconLayoutGrid size={14} />
           </Button>
-          <Button variant="ghost" size="sm" className="ml-1 text-xs text-muted-foreground" onClick={startEdit}>
+          {isTutor && <Button variant="ghost" size="sm" className="ml-1 text-xs text-muted-foreground" onClick={startEdit}>
             Edit
-          </Button>
+          </Button>}
         </div>
       </div>
 
@@ -277,15 +293,32 @@ export function SubjectsRates() {
       ) : (
         <ScrollArea className="w-full">
           <div className={view === "grid" ? "grid grid-cols-2 gap-2 p-0.5" : "flex flex-col gap-2 p-0.5"}>
-            {filtered.map((entry) => (
-              <Card key={entry.id} className="shadow-none">
-                <CardContent className="p-3">
-                  <Badge variant="secondary" className="mb-1 text-xs">{entry.level}</Badge>
-                  <p className="text-sm font-medium">{entry.subject}</p>
-                  <p className="text-xs text-muted-foreground">{formatRate(entry.rateRaw, entry.currency)}</p>
-                </CardContent>
-              </Card>
-            ))}
+            {filtered.map((entry) => {
+              const isSelected = selected.some((s) => s.id === entry.id)
+              return (
+                <Card
+                  key={entry.id}
+                  onClick={() => !isTutor && onToggle(entry)}
+                  className={`shadow-none transition-all ${
+                    isTutor ? "" :
+                    isSelected ? "cursor-pointer border-green-500 bg-green-50 dark:bg-green-950/30" : "cursor-pointer hover:border-muted-foreground/30"
+                  }`}
+                >
+                  <CardContent className="relative p-3">
+                    <div className="mb-1 flex items-center justify-between">
+                      <Badge variant="secondary" className="text-xs">{entry.level}</Badge>
+                      {isSelected
+                        ? <IconCheck size={14} className="text-green-600" />
+                        : <IconBrandWhatsapp size={14} className="text-muted-foreground/40" />
+                      }
+                    </div>
+                    <p className="text-sm font-medium">{entry.subject}</p>
+                    <p className="text-xs text-muted-foreground">{formatRate(entry.rateRaw, entry.currency)}</p>
+                    {!isTutor && <p className="mt-1.5 text-xs text-muted-foreground/50">Tap to enquire</p>}
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         </ScrollArea>
       )}

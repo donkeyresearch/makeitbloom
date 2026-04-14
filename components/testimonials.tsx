@@ -102,7 +102,7 @@ function ImageUploader({ onAdd }: { onAdd: (urls: string[]) => void }) {
   )
 }
 
-export function Testimonials() {
+export function Testimonials({ isTutor }: { isTutor: boolean }) {
   const [items, setItems] = useState<Testimonial[]>(DEFAULT_TESTIMONIALS)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState<Testimonial[]>(DEFAULT_TESTIMONIALS)
@@ -265,9 +265,9 @@ export function Testimonials() {
             <Button variant={view === "grid" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setView("grid")}>
               <IconLayoutGrid size={14} />
             </Button>
-            <Button variant="ghost" size="sm" className="ml-1 text-xs text-muted-foreground" onClick={startEdit}>
+            {isTutor && <Button variant="ghost" size="sm" className="ml-1 text-xs text-muted-foreground" onClick={startEdit}>
               Edit
-            </Button>
+            </Button>}
           </div>
         </div>
 
